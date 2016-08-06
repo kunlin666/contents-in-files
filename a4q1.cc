@@ -1,29 +1,41 @@
 #include<iostream>
 #include<fstream>
+#include<sstream>
+#include<vector>
 using namespace std;
 
 int main(int argc, char *argv[]){
+    cin.exceptions(ios::eofbit|ios::failbit);
     int sum=0,non_sum=0,non_file=0;
-    char *new_file[argc];
-    for(int i=0;i<argc;i++){
-        ifstream file{argv[i]};
-        string s;
-        int num=0;
-        file.exceptions ( ifstream::failbit | ifstream::badbit );
+    vector<string> new_file;
+    for(int i=1,pos=0;i<argc;i++){
         try {
-            while (file >> num) {
-                sum+=num;
+            ifstream file{argv[i]};
+            if(!file){
+                throw argv[i];
             }
+            string s;
+            int num;
+            char c;
             while(file >> s){
-                non_sum+=1;
+                istringstream ss{s};
+                if(ss >> num){
+                    sum+=num;
+                    ss.ignore();
+                    if(ss >> c){
+                        non_sum+=1;
+                    }
+                }
+                else{
+                    non_sum+=1;
+                }
             }
         }
-        catch (ifstream::failure e) {
-            new_file[non_file]=argv[i];
-            non_file++;
-            throw;
+        catch (char* file_name) {
+            new_file.push_back(file_name);
+            non_file+=1;
+            pos+=1;
         }
-
     }
     
     cout << "Non-existent files: ";
@@ -33,7 +45,12 @@ int main(int argc, char *argv[]){
     if(non_file-1 >=0){
         cout << new_file[non_file-1] << endl;
     }
+    else{
+        cout << endl;
+    }
     cout << "Total of all numbers: " << sum << endl;
     cout << "Total number of non-numbers: " << non_sum << endl;
-    return 0;
+    
+
 }
+
